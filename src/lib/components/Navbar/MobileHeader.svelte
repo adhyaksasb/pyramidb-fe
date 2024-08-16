@@ -17,7 +17,7 @@
 
 <Sheet.Root>
 	<Sheet.Trigger asChild let:builder>
-		<Button builders={[builder]} size="icon" variant="outline" class="sm:hidden">
+		<Button builders={[builder]} size="icon" variant="outline" class="md:hidden">
 			<PanelLeft class="h-5 w-5" />
 			<span class="sr-only">Toggle Menu</span>
 		</Button>
@@ -35,25 +35,31 @@
 			<MobileLink
 				icon="AvatarIcon.png"
 				{path}
-				href="/characters"
+				href="/star-rail/characters"
 				name="Characters"
 				filter={false}
 			/>
 			<MobileLink
 				icon="RelicsIconBlack.png"
 				{path}
-				href="/relic-scorer"
+				href="/star-rail/relic-scorer"
 				name="Relic Scorer"
 				filter={true}
 			/>
 			<MobileLink
 				icon="AchievementIcon.png"
 				{path}
-				href="/achievements"
-				name="Achievements"
+				href="/star-rail/achievements-tracker"
+				name="Achievements Tracker"
 				filter={false}
 			/>
-			<MobileLink icon="DataBankIcon.png" {path} href="/databank" name="Databank" filter={false} />
+			<MobileLink
+				icon="DataBankIcon.png"
+				{path}
+				href="/star-rail/databank"
+				name="Databank"
+				filter={false}
+			/>
 		</nav>
 	</Sheet.Content>
 </Sheet.Root>

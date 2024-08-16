@@ -61,7 +61,9 @@
 </script>
 
 <div class="w-full min-w-[375px] p-1.5">
-	<h1 class="mb-8 px-10 text-2xl font-bold text-primary">Honkai: Star Rail Characters</h1>
+	<h1 class="mb-8 text-2xl font-bold text-primary md:px-10 lg:px-0">
+		Honkai: Star Rail Characters
+	</h1>
 	<div class="rounded-lg border border-border py-6 shadow-lg">
 		<Filter {filterRarity} {filterElement} {filterPath} />
 		{#if !isLoading}

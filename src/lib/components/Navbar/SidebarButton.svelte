@@ -5,8 +5,8 @@
 
 	let isHovered: boolean = $state(false);
 
-	let slicedHref = $derived('/' + href.split('/')[1]);
-	let slicedPath = $derived('/' + path.split('/')[1]);
+	let slicedHref = $derived('/' + href.split('/')[2]);
+	let slicedPath = $derived('/' + path.split('/')[2]);
 </script>
 
 <div
@@ -37,7 +37,7 @@
 	</a>
 	<div
 		class={cn(
-			'text-text-primary absolute left-28 z-10 mt-4 text-nowrap rounded-xl bg-muted p-4 font-semibold shadow-lg',
+			'absolute left-28 z-10 mt-4 text-nowrap rounded-xl bg-muted p-4 font-semibold text-text-primary shadow-lg',
 			isHovered ? 'block' : 'hidden'
 		)}
 	>

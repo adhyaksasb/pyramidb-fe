@@ -3,18 +3,7 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import {
-		Home,
-		LineChart,
-		Moon,
-		Package,
-		Package2,
-		PanelLeft,
-		Search,
-		ShoppingCart,
-		Sun,
-		UsersRound
-	} from 'lucide-svelte';
+	import { Moon, Search, Sun, UsersRound } from 'lucide-svelte';
 
 	let avatar = '/assets/images/placeholder-user.png';
 
@@ -71,8 +60,8 @@
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
 	<div class="hidden w-2 sm:block"></div>
-	<div class="text-text-primary relative ml-auto flex-1 md:grow-0">
-		<Search class="text-text-primary absolute left-2.5 top-2.5 h-4 w-4" />
+	<div class="relative ml-auto flex-1 text-text-primary md:grow-0">
+		<Search class="absolute left-2.5	top-[11px] h-4 w-4 text-text-primary" />
 		<Input
 			type="search"
 			placeholder="Search..."

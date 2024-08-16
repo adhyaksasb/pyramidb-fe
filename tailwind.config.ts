@@ -96,6 +96,10 @@ const config: Config = {
 				'inverse-bottom': '4px -4px 0 hsl(13 78% 93%)',
 				'inverse-top-dark': '4px 4px 0 hsl(224 71.4% 4.1%)',
 				'inverse-bottom-dark': '4px -4px 0 hsl(224 71.4% 4.1%)'
+			},
+			transitionProperty: {
+				height: 'height',
+				spacing: 'margin, padding'
 			}
 		}
 	}
