@@ -5,5 +5,5 @@
 </script>
 
 <div class="flex h-screen w-full items-center justify-center text-primary">
-	<span class="pb-32 pr-8 text-4xl sm:text-8xl">PyramidDB</span>
+	<span class="pb-32 text-4xl sm:text-8xl">PyramidDB</span>
 </div>

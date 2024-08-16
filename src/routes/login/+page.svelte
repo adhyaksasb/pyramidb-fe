@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { isValidEmail } from '$lib/utils';
+	import { fetchUserInfo } from '$lib/users';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { goto } from '$app/navigation';
 
 	type LoginData = {
 		username: string;
@@ -29,15 +31,17 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(formData)
+				body: JSON.stringify(formData),
+
+				credentials: 'include'
 			});
 
 			if (!response.ok) {
 				throw new Error('Failed to submit form');
+			} else {
+				await fetchUserInfo();
+				goto('/star-rail');
 			}
-
-			const resp = await response.json();
-			console.log(resp);
 		} catch (error) {
 			console.error('Failed to sign up:', error);
 		} finally {
