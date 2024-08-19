@@ -1,20 +1,21 @@
-import { user } from '../stores/userStore';
+import { getWithExpiry, setWithExpiry } from './utils';
 
-// Function to fetch user info
-export async function fetchUserInfo() {
+export const fetchUserInfo = async (token: string) => {
 	try {
 		const response = await fetch('https://pyramidb-be.vercel.app/api/me', {
-			credentials: 'include'
+			headers: {
+				Authorization: `Bearer ${token}`
+			}
 		});
 
 		if (response.ok) {
 			const data = await response.json();
-			user.set(data.user); // Update the user store with the fetched info
+			setWithExpiry('user', data, 10080000); // Update the user store with the fetched info
 		} else {
-			user.set(null); // Clear user info on failure
+			getWithExpiry('user'); // Clear user info on failure
 		}
 	} catch (error) {
 		console.error('Failed to fetch user info:', error);
-		user.set(null); // Clear user info on error
+		getWithExpiry('user'); // Clear user info on error
 	}
-}
+};

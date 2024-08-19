@@ -3,12 +3,14 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
-	import { Moon, Search, Sun, UsersRound } from 'lucide-svelte';
+	import { Moon, Search, Sun } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
 
 	let avatar = '/assets/images/placeholder-user.png';
 
 	import { resetMode, setMode } from 'mode-watcher';
 	import MobileHeader from './MobileHeader.svelte';
+	import { getWithExpiry } from '$lib/utils';
 
 	let { path }: { path: string } = $props();
 
@@ -23,6 +25,26 @@
 				.replace(/(^\w{1})|(\s+\w{1})/g, (letter) => letter.toUpperCase());
 		})
 	);
+
+	let userInfo: any = $state(null);
+
+	const setHeader = () => {
+		userInfo = getWithExpiry('user');
+	};
+
+	const logout = () => {
+		localStorage.removeItem('user');
+		localStorage.removeItem('token');
+
+		setHeader();
+
+		goto('/star-rail');
+		console.log(userInfo);
+	};
+
+	$effect(() => {
+		setHeader();
+	});
 </script>
 
 <header
@@ -104,13 +126,20 @@
 				/>
 			</Button>
 		</DropdownMenu.Trigger>
-		<DropdownMenu.Content align="end">
-			<DropdownMenu.Label>My Account</DropdownMenu.Label>
-			<DropdownMenu.Separator />
-			<DropdownMenu.Item>Settings</DropdownMenu.Item>
-			<DropdownMenu.Item>Support</DropdownMenu.Item>
-			<DropdownMenu.Separator />
-			<DropdownMenu.Item>Logout</DropdownMenu.Item>
-		</DropdownMenu.Content>
+		{#if userInfo != null}
+			<DropdownMenu.Content align="end">
+				<DropdownMenu.Label>{userInfo.Username}</DropdownMenu.Label>
+				<DropdownMenu.Separator />
+				<DropdownMenu.Item>Settings</DropdownMenu.Item>
+				<DropdownMenu.Item>Support</DropdownMenu.Item>
+				<DropdownMenu.Separator />
+				<DropdownMenu.Item onclick={logout}>Logout</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		{:else}
+			<DropdownMenu.Content align="end">
+				<DropdownMenu.Item href="/login">Login</DropdownMenu.Item>
+				<DropdownMenu.Item href="/register">Register</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		{/if}
 	</DropdownMenu.Root>
 </header>

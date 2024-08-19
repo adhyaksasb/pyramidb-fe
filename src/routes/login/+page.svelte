@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { isValidEmail } from '$lib/utils';
+	import { setWithExpiry, getWithExpiry } from '$lib/utils';
 	import { fetchUserInfo } from '$lib/users';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { goto } from '$app/navigation';
+	import Spinner from '$lib/components/Global/Spinner.svelte';
 
 	type LoginData = {
 		username: string;
@@ -31,19 +32,24 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(formData),
-
-				credentials: 'include'
+				body: JSON.stringify(formData)
 			});
 
 			if (!response.ok) {
 				throw new Error('Failed to submit form');
-			} else {
-				await fetchUserInfo();
-				goto('/star-rail');
 			}
+
+			const data = await response.json();
+			const token = data.token;
+
+			// Store the token (e.g., in localStorage or sessionStorage)
+			setWithExpiry('token', token, 10080000);
+
+			// Fetch user info and redirect
+			await fetchUserInfo(token);
+			goto('/star-rail');
 		} catch (error) {
-			console.error('Failed to sign up:', error);
+			console.error('Failed to log in:', error);
 		} finally {
 			isLoading = false;
 		}
@@ -84,7 +90,17 @@
 						/>
 					</div>
 					<a href="##" class="ml-auto inline-block text-sm underline"> Forgot your password? </a>
-					<Button type="submit" class="w-full">Login</Button>
+					{#if isLoading}
+						<button
+							type="button"
+							class="flex items-center justify-center rounded-md bg-primary/60 px-4 py-2"
+							disabled
+						>
+							<Spinner />
+						</button>
+					{:else}
+						<Button type="submit" class="mt-4 w-full">Sign Up</Button>
+					{/if}
 				</form>
 				<div class="relative">
 					<div class="absolute inset-0 flex items-center">
