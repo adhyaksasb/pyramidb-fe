@@ -4,7 +4,6 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Moon, Search, Sun } from 'lucide-svelte';
-	import { goto } from '$app/navigation';
 
 	let avatar = '/assets/images/placeholder-user.png';
 
@@ -38,8 +37,7 @@
 
 		setHeader();
 
-		goto('/star-rail');
-		console.log(userInfo);
+		window.location.href = '/star-rail';
 	};
 
 	$effect(() => {

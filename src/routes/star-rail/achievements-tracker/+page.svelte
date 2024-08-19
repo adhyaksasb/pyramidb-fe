@@ -2,7 +2,7 @@
 	import * as Select from '$lib/components/ui/select';
 
 	import { scale } from 'svelte/transition';
-	import { cn, areArraysOneToOne } from '$lib/utils';
+	import { cn, areArraysOneToOne, setWithExpiry, getWithExpiry } from '$lib/utils';
 	import { versionList } from '$lib/achievements';
 	import type { Achievement, MergedAchievement } from '$lib/types/achievements';
 	import { ChevronDown, Check, Search, SlidersHorizontal, Trophy } from 'lucide-svelte';
@@ -25,7 +25,8 @@
 	let isVersionSelectOpened: boolean = $state(false);
 	let searchTerm: string = $state('');
 	let selectedOrder = $state({ value: '', label: 'Title (ASC)' });
-	let selectedCompletion = $state({ value: '', label: 'All' });
+	let selectedCompletion = $state({ value: 'null', label: 'All' });
+	let token: string | null = $state(null);
 
 	const handleVersionSelect = () => {
 		isVersionSelectOpened = !isVersionSelectOpened;
@@ -72,9 +73,14 @@
 		isAchievementsHovered = !isAchievementsHovered;
 	};
 
-	const mergeAchievements = (achievements: Achievement[]): MergedAchievement[] => {
+	const mergeAchievements = (
+		achievements: Achievement[],
+		achievementArr: string[],
+		filterByAchievementArr: string
+	): MergedAchievement[] => {
 		const merged = new Map<number, MergedAchievement>();
 
+		// Merge achievements by RelationID
 		achievements.forEach((achievement) => {
 			const { RelationID } = achievement;
 
@@ -88,7 +94,29 @@
 			}
 		});
 
-		return Array.from(merged.values());
+		// Convert the merged map to an array
+		const mergedArray = Array.from(merged.values());
+
+		// Apply filtering logic based on the filterByAchievementArr parameter
+		if (filterByAchievementArr === 'true') {
+			// Include only achievements in achievementArr
+			return mergedArray.filter((mergedAchievement) =>
+				mergedAchievement.Achievements.some(
+					(achievement) => achievementArr.includes(achievement.ID.toString()) // Convert ID to string for comparison
+				)
+			);
+		} else if (filterByAchievementArr === 'false') {
+			// Exclude achievements in achievementArr
+			return mergedArray.filter(
+				(mergedAchievement) =>
+					!mergedAchievement.Achievements.some((achievement) =>
+						achievementArr.includes(achievement.ID.toString())
+					)
+			);
+		}
+
+		// If filterByAchievementArr is null, return all merged achievements without filtering
+		return mergedArray;
 	};
 
 	const fetchAchievements = async () => {
@@ -101,6 +129,9 @@
 			});
 			const resp = await response.json();
 			achievements = resp.achievements;
+			const userAchievements: any = getWithExpiry('user');
+			completedAchievements = userAchievements.User.Achievements.split(',');
+			token = getWithExpiry('token');
 			applyFilters();
 			handlePageChange(1);
 		} catch (error) {
@@ -147,6 +178,9 @@
 				name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 				description.toLowerCase().includes(searchTerm.toLowerCase());
 
+			// const matchesCompletion =
+			// 	achievement.ID.length === 0 || completedAchievements.includes(achievement.ID);
+
 			return matchesSeries && matchesHide && matchesVersion && matchesSearch;
 		});
 		// Sort based on `sortBy` value
@@ -158,8 +192,11 @@
 			filteredAchievements.sort((a, b) => b.Title.localeCompare(a.Title));
 		}
 
-		filteredAchievements = mergeAchievements(filteredAchievements);
-
+		filteredAchievements = mergeAchievements(
+			filteredAchievements,
+			completedAchievements,
+			selectedCompletion.value
+		);
 		handlePageChange(currPage);
 	};
 
@@ -172,6 +209,34 @@
 	const handlePageChange = (page: number): void => {
 		paginatedAchievements = filteredAchievements.slice((page - 1) * perPage, page * perPage);
 		currPage = page;
+	};
+
+	const addOrRemoveAchievement = async (achievementID: number) => {
+		try {
+			const response = await fetch(
+				`https://pyramidb-be.vercel.app/api/user/achievement/${achievementID}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${token}`
+					}
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				setWithExpiry('user', data, 10080000);
+				const userAchievements: any = getWithExpiry('user');
+				completedAchievements = userAchievements.User.Achievements.split(',');
+			} else {
+				getWithExpiry('user');
+			}
+		} catch (error) {
+			console.error('Failed to add or remove achievement:', error);
+		} finally {
+			isLoading = false;
+		}
 	};
 </script>
 
@@ -221,14 +286,17 @@
 			</div>
 			<div class="flex flex-col">
 				<p class="text-semibold mb-1 ml-1 text-muted-foreground">Completion</p>
-				<Select.Root bind:selected={selectedCompletion}>
+				<Select.Root
+					bind:selected={selectedCompletion}
+					onSelectedChange={() => setTimeout(applyFilters, 150)}
+				>
 					<Select.Trigger class="w-[200px] hover:bg-foreground/20">
 						<Select.Value placeholder="All" />
 					</Select.Trigger>
 					<Select.Content>
-						<Select.Item value="">All</Select.Item>
-						<Select.Item value="completed">Completed</Select.Item>
-						<Select.Item value="incomplete">Incomplete</Select.Item>
+						<Select.Item value="null">All</Select.Item>
+						<Select.Item value="true">Completed</Select.Item>
+						<Select.Item value="false">Incomplete</Select.Item>
 					</Select.Content>
 				</Select.Root>
 			</div>
@@ -420,7 +488,16 @@
 			{:else if paginatedAchievements != null && paginatedAchievements.length > 0}
 				{#each paginatedAchievements as achievement}
 					{#if achievement.Achievements.length > 1}
-						<div class="flex flex-col gap-2 rounded-lg border border-primary px-2 pb-2">
+						<div
+							class={cn(
+								'flex flex-col gap-2 rounded-lg border border-primary px-2 pb-2',
+								achievement.Achievements.some((item: any) =>
+									completedAchievements.includes(item.ID.toString())
+								)
+									? 'opacity-65'
+									: ''
+							)}
+						>
 							<span class="ml-4 w-fit rounded-b-md bg-primary px-3 py-1 text-sm text-white"
 								>Related</span
 							>
@@ -430,7 +507,20 @@
 								>
 									<div class="flex w-full justify-between pl-1">
 										<p class="text-lg font-bold">{item.Title}</p>
-										<input type="checkbox" class="h-6 w-6 cursor-pointer" />
+										{#if completedAchievements.includes(item.ID.toString())}
+											<input
+												type="checkbox"
+												class="h-6 w-6 cursor-pointer"
+												checked
+												onclick={() => addOrRemoveAchievement(item.ID)}
+											/>
+										{:else}
+											<input
+												type="checkbox"
+												class="h-6 w-6 cursor-pointer"
+												onclick={() => addOrRemoveAchievement(item.ID)}
+											/>
+										{/if}
 									</div>
 									<span class="mb-2 text-muted-foreground">{item.Desc}</span>
 									<div class="flex gap-2 text-muted-foreground">
@@ -462,11 +552,29 @@
 						</div>
 					{:else}
 						<div
-							class="flex flex-col gap-1 rounded-lg border border-muted-foreground/40 p-4 hover:translate-y-0.5 hover:border-muted-foreground/70"
+							class={cn(
+								'flex flex-col gap-1 rounded-lg border border-muted-foreground/40 p-4 hover:translate-y-0.5 hover:border-muted-foreground/70',
+								completedAchievements.includes(achievement.Achievements[0].ID.toString())
+									? 'opacity-65'
+									: ''
+							)}
 						>
 							<div class="flex w-full justify-between pl-1">
 								<p class="text-lg font-bold">{achievement.Achievements[0].Title}</p>
-								<input type="checkbox" class="h-6 w-6 cursor-pointer" />
+								{#if completedAchievements.includes(achievement.Achievements[0].ID.toString())}
+									<input
+										type="checkbox"
+										class="h-6 w-6 cursor-pointer"
+										checked
+										onclick={() => addOrRemoveAchievement(achievement.Achievements[0].ID)}
+									/>
+								{:else}
+									<input
+										type="checkbox"
+										class="h-6 w-6 cursor-pointer"
+										onclick={() => addOrRemoveAchievement(achievement.Achievements[0].ID)}
+									/>
+								{/if}
 							</div>
 							<span class="mb-2 text-muted-foreground">{achievement.Achievements[0].Desc}</span>
 							<div class="flex gap-2 text-muted-foreground">

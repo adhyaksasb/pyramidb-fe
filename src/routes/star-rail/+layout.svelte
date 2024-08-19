@@ -7,31 +7,6 @@
 	let { children } = $props();
 
 	let path = $derived($page.url.pathname);
-
-	const fetchUserInfo = async (token: string | null) => {
-		try {
-			const response = await fetch('https://pyramidb-be.vercel.app/api/me', {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-			if (response.ok) {
-				const data = await response.json();
-
-				setWithExpiry('user', data.user, 10080000);
-			} else {
-				getWithExpiry('user');
-			}
-		} catch (error) {
-			console.error('Failed to fetch characters:', error);
-		}
-	};
-
-	$effect(() => {
-		let token: string | null = getWithExpiry('token');
-
-		fetchUserInfo(token);
-	});
 </script>
 
 <svelte:head>

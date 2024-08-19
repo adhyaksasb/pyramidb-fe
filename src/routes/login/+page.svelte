@@ -47,7 +47,7 @@
 
 			// Fetch user info and redirect
 			await fetchUserInfo(token);
-			goto('/star-rail');
+			window.location.href = '/star-rail';
 		} catch (error) {
 			console.error('Failed to log in:', error);
 		} finally {
