@@ -73,7 +73,7 @@
 				>
 					{#each filteredCharacters as character}
 						<a
-							href="/characters/{character.Tag}"
+							href="/star-rail/characters/{character.Tag}"
 							class="rarity-{character.Rarity} relative h-full w-24 cursor-pointer rounded-lg text-gray-200 hover:scale-105"
 						>
 							<picture class="h-24 w-24 object-cover">
