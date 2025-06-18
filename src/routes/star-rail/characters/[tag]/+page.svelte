@@ -2,10 +2,10 @@
 	import StatRange from '$lib/components/CharacterDetails/StatRange.svelte';
 	import { cn } from '$lib/utils';
 
-	let data: any = $props();
-
-	let character = data.data.props[0];
-
+	const props = $props();
+	const { data } = props;
+	const character = data.character[0];
+	
 	let skills: any = $state(null);
 
 	let tab: string = $state('Basic');

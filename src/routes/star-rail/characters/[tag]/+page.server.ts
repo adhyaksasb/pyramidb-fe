@@ -1,16 +1,19 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ params }) => {
+export const load: PageServerLoad = async ({ params, fetch }) => {
 	const { tag } = params;
 
-	const response = await fetch(`https://pyramidb-be.vercel.app/api/characters/${tag}`);
+	console.log('Fetching character for tag:', tag);
 
-	const data = await response.json();
+	const res = await fetch(`https://pyramidb-be.vercel.app/api/characters/${tag}`);
+	const data = await res.json();
 
-	if(!data.character) {
+	console.log('Fetched data:', data);
+
+	if (!data.character) {
 		throw error(404, 'Character Not Found');
 	}
 
-	return { props: data.character };
-}) satisfies PageServerLoad;
+	return { character: data.character };
+};
