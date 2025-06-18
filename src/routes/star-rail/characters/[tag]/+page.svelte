@@ -69,6 +69,7 @@
 	};
 
 	$effect(() => {
+		document.title = `${character.Name} | Honkai: Star Rail DB`;
 		fetchCharacterSkills();
 	});
 </script>
